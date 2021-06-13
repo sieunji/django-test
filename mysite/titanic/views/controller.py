@@ -25,7 +25,7 @@ class Controller(object):
         clf = RandomForestClassifier()
         clf.fit(this.train, this.label)
         prediction = clf.predict(this.test)
-        pd.DataFrame({'PassengerId': this.id, 'Survived': prediction}).to_csv('../data/submission.csv', index=False)
+        pd.DataFrame({'PassengerId': this.id, 'Survived': prediction}).to_csv('./data/submission.csv', index=False)
 
     def preprocess(self, train, test) -> object:
         service = self.service
