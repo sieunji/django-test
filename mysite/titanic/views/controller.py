@@ -3,7 +3,7 @@ from mysite.titanic.models.service import Service
 from mysite.titanic.templates.plot import Plot
 import pandas as pd
 import numpy as np
-from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
 
 class Controller(object):
     dataset = Dataset()
@@ -16,15 +16,16 @@ class Controller(object):
         this.train = service.create_train(this)
         return this
 
-    def learning(self, this):
-        print(f'사이킷런의 SVC 알고리즘 정확도 {self.service.accuracy_by_svm(this)} %')
+    def learning(self, train,test):
+        this = self.modeling(train,test)
+        print(f'사이킷런의 SVC 알고리즘 정확도 {self.service.get_accurcy(this)} %')
 
     def submit(self, train, test):
         this = self.modeling(train, test)
-        clf = SVC()
+        clf = RandomForestClassifier()
         clf.fit(this.train, this.label)
         prediction = clf.predict(this.test)
-        pd.DataFrame({'PassengerId': this.id, 'Survived': prediction}).to_csv('./data/submission.csv', index=False)
+        pd.DataFrame({'PassengerId': this.id, 'Survived': prediction}).to_csv('../data/submission.csv', index=False)
 
     def preprocess(self, train, test) -> object:
         service = self.service
@@ -53,13 +54,3 @@ class Controller(object):
         print(f'7. Test 의 상위 1개 행\n {this.test.head()}개')
         print(f'8. Test 의 null 의 갯수\n {this.test.isnull().sum()}개')
         print('*' * 100)
-
-if __name__ == '__main__':
-    api = Controller()
-    while 1:
-        menu = input('0-종료 1-데이터출력')
-        if menu =='0':
-            break
-        elif menu =='1':
-            plot = Plot('train.csv')
-            plot.print_survived_dead()

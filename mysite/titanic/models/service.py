@@ -3,44 +3,45 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import KFold
 from sklearn.model_selection import cross_val_score
-from sklearn.ensemble import  RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier
 
 class Service(object):
 
     dataset = Dataset()
 
-    def new_model(self,payload)-> object:
+    def new_model(self, payload) -> object:
         this = self.dataset
-        this.context ='../data/'
+        this.context = './data/'
         this.fname = payload
         return pd.read_csv(this.context + this.fname)
 
     @staticmethod
     def create_train(this) -> object:
-        return this.train.drop('Survived', axis = 1) #axis 0 가로, 1 세로
+        return this.train.drop('Survived', axis = 1) # axis 0 가로, 1 세로
 
     @staticmethod
-    def create_label(this)-> object:
+    def create_label(this) -> object:
         return this.train['Survived']
 
     @staticmethod
-    def drop_nominal(this, *feature) -> object:
+    def drop_feature(this, *feature) -> object:
+
         for i in feature:
-            this.train = this.train.drop([i], axis=1)
-            this.test = this.test.drop([i], axis =1)
-            #학습, 테스트 세트는 항상 동일하게 편집한다.
+            this.train = this.train.drop([i], axis = 1)
+            this.test = this.test.drop([i], axis=1)
+            # 학습, 테스트 세트는 항상 동일하게 편집한다.
         return this
 
     @staticmethod
-    def embarked_nominal(this)-> object:
-         this.train = this.train.fillna({'Embarked','S'}) #s는 사우스햄튼
-         this.test = this.test.fillna({'Embarked', 'S'})  # s는 사우스햄튼
-         this.train['Embarked'] = this.train['Embarked'].map({'S':1,'C':2, 'Q':3})
-         this.test['Embarked'] = this.test['Embarked'].map({'S': 1, 'C': 2, 'Q': 3})
-         return this
+    def embarked_nominal(this) -> object:
+        this.train = this.train.fillna({'Embarked': 'S'}) # S는 사우스햄튼
+        this.test = this.test.fillna({'Embarked': 'S'})  # S는 사우스햄튼
+        this.train['Embarked'] = this.train['Embarked'].map({'S': 1, 'C': 2, 'Q':3})
+        this.test['Embarked'] = this.test['Embarked'].map({'S': 1, 'C': 2, 'Q': 3})
+        return this
 
     @staticmethod
-    def title_nominal(this)-> object:
+    def title_norminal(this) -> object:
         combine = [this.train, this.test]
         for dataset in combine:
             dataset['Title'] = dataset.Name.str.extract('([A-Za-z]+)\.', expand=False)
@@ -57,15 +58,15 @@ class Service(object):
         return this
 
     @staticmethod
-    def gender_nominal(this)-> object:
-        combine = [this.train,this.test]
-        gender_mapping ={'male':0,'female':1}
+    def gender_norminal(this) -> object:
+        combine = [this.train, this.test]
+        gender_mapping = {'male': 0, 'female': 1}
         for i in combine:
             i['Gender'] = i['Sex'].map(gender_mapping)
         return this
 
     @staticmethod
-    def age_nominal(this)-> object:
+    def age_ordinal(this) -> object:
         train = this.train
         test = this.test
         for data in train, test:
@@ -80,20 +81,21 @@ class Service(object):
         return this
 
     @staticmethod
-    def fare_nominal(this)-> object:
+    def fare_ordinal(this) -> object:
 
-        this.train['FareBand'] = pd.qcut(this.train['Fare'],4, labels={1,2,3,4}) #최고와 최저를 통해 4등분하라
-        this.test['FareBand'] = pd.qcut(this.train['Fare'],4, labels={1,2,3,4})
+        this.train['FareBand'] = pd.qcut(this.train['Fare'], 4, labels={1,2,3,4}) # 최고와 최저를 통해 4등분하라
+        this.test['FareBand'] = pd.qcut(this.test['Fare'], 4, labels={1,2,3,4})
+        return this
 
     @staticmethod
     def create_k_fold() -> object:
-        return KFold(n_splits=10, shuffle=True, random_state=0) #트레인데이터를 10등분, 반복출제 허용
+        return KFold(n_splits=10, shuffle= True, random_state=0 ) # 트레인데이터를 10등분, 반복출제 허용
 
-    def get_accurcy(self,this):
-        score = cross_val_score(RandomForestClassifier()
-                                , this.train
-                                , this.label
-                                , cv = self.create_k_fold()
-                                , n_jobs=1
-                                , scoring='accuracy')
-        return round(np.mean(score)*100,2)
+    def get_accurcy(self, this):
+        score = cross_val_score(RandomForestClassifier(),
+                                this.train,
+                                this.label,
+                                cv=self.create_k_fold(),
+                                n_jobs=1,
+                                scoring='accuracy')
+        return round(np.mean(score)*100, 2)
